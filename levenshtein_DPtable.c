@@ -13,7 +13,7 @@ typedef struct {
     int columns;
     str_t s;
     str_t t;
-    int edit_distance;
+    int *edit_distance;
 } table_t;
 
 void _print_table(table_t *table);
@@ -21,12 +21,13 @@ table_t _init_table(int rows, int columns);
 table_t calulate_levenshtein_distance(char *s, char *t);
 void _fill_table(table_t *t);
 void print_backtracking(table_t *t);
+int* _min_backtracking(int *p_left, int *p_above, int *p_leftabove);
 
 /**
  * Horrendous print loops to prettily print the table to the terminal.
  */
 void _print_table(table_t *table) {
-    short _cw = table->t.size;
+    short _cw = table->t.size / 10 + 3;
 
     for (int i = -1; i < table->rows; i++) {
         for (int j = -1; j < table->columns; j++) {
@@ -115,14 +116,51 @@ table_t calulate_levenshtein_distance(char *s, char *t) {
     dp_table.t = tt;
     _fill_table(&dp_table);
 
-    dp_table.edit_distance = *(dp_table.table + (dp_table.rows - 1) * dp_table.columns + (dp_table.columns - 1)); //Edit distance can be found in the bottom right of the array;
-    printf("Distance: %d\n", dp_table.edit_distance);
+    dp_table.edit_distance = (dp_table.table + (dp_table.rows - 1) * dp_table.columns + (dp_table.columns - 1)); //Edit distance can be found in the bottom right of the array;
+    printf("Distance: %d\n", *dp_table.edit_distance);
     _print_table(&dp_table);
     return dp_table;
 }
 
-void print_backtracking(table_t *t) {
+void print_backtracking(table_t *tb) {
+    int *table_index = tb->edit_distance; //tb->table + (tb->rows - 1) * tb->columns + (tb->columns - 1);
+    int t_index = tb->t.size - 1;
+    int s_index = tb->s.size - 1;
+    int _op_cntr = *tb->edit_distance;
+    while (table_index != tb->table + 0 * tb->columns) { // End if im at the top left index.
+        int *p_left = table_index - 1;
+        int *p_above = table_index - tb->columns;
+        int *p_leftabove = table_index - 1 - tb->columns;
+        int *min = _min_backtracking(p_left, p_above, p_leftabove);
+        if (min == p_left) {
+            // We found it to the left, meaning we need to insert
+            printf("%d: [Insert %c]\n", _op_cntr--, tb->t.data[s_index]);
+            t_index--;
+        } else if (min == p_above) {
+            // We found it above, this means we need to remove a char.
+            printf("%d: [Remove %c]\n", _op_cntr--, tb->s.data[s_index]);
+            s_index--;
 
+        } else if (min == p_leftabove) {
+            if (*table_index != *min) {
+                // If the values aren't equal, we need to replace, if they are equal, then we don't have to do anything.
+                printf("%d: [Replace %c with %c]\n", _op_cntr--, tb->s.data[s_index], tb->t.data[t_index]);
+            }
+            // Decrease all indices accordingly
+            t_index--;
+            s_index--;
+        } else {
+            exit(-1);
+        }
+        table_index = min;
+    }
+}
+
+int* _min_backtracking(int *p_left, int *p_above, int *p_leftabove) {
+    int *min = p_leftabove;
+    min = (*p_above < *min ? p_above : min);
+    min = (*p_left < *min ? p_left : min);
+    return min;
 }
 
 int main(int argc, char **argv) {
@@ -134,6 +172,7 @@ int main(int argc, char **argv) {
     // Run computations.
     table_t dp_table;
     dp_table = calulate_levenshtein_distance(argv[1], argv[2]);
+    print_backtracking(&dp_table);
     free(dp_table.table);
     return EXIT_SUCCESS;
 }
