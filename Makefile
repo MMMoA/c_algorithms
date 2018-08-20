@@ -7,9 +7,19 @@ CFLAGS=-Werror -Wall -pedantic -fsanitize=address -std=c11 $(DEBUG) $(OPTIONAL_C
 
 OPTIONAL_CFLAGS= -Wcomment -Wformat -Wimplicit -Wparentheses -Wreturn-type -Wunused -Wstrict-prototypes -Wmissing-prototypes
 
-all: levenshtein
+all: string_operations
 
-levenshtein: levenshtein_DPtable.o
+string_operations: levenshtein strings
+
+strings: libstring strings_test
+
+strings_test: string_operations/stringlib_test.o
+	$(CC) $(LDFLAGS) -o $@ $^
+
+libstring: string_operations/string_operations.o
+	ar rcs $@.a $^
+
+levenshtein: string_operations/levenshtein_DPtable.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c

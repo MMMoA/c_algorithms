@@ -127,14 +127,16 @@ void print_backtracking(table_t *tb) {
     int t_index = tb->t.size - 1;
     int s_index = tb->s.size - 1;
     int _op_cntr = *tb->edit_distance;
+    //printf("--- %d ---\n", *(tb->table + 0 * tb->columns));
     while (table_index != tb->table + 0 * tb->columns) { // End if im at the top left index.
         int *p_left = table_index - 1;
         int *p_above = table_index - tb->columns;
         int *p_leftabove = table_index - 1 - tb->columns;
         int *min = _min_backtracking(p_left, p_above, p_leftabove);
+        printf("s = %d, t = %d\n", s_index, t_index);
         if (min == p_left) {
             // We found it to the left, meaning we need to insert
-            printf("%d: [Insert %c]\n", _op_cntr--, tb->t.data[s_index]);
+            printf("%d: [Insert %c]\n", _op_cntr--, tb->t.data[t_index]);
             t_index--;
         } else if (min == p_above) {
             // We found it above, this means we need to remove a char.
@@ -158,6 +160,7 @@ void print_backtracking(table_t *tb) {
 
 int* _min_backtracking(int *p_left, int *p_above, int *p_leftabove) {
     int *min = p_leftabove;
+
     min = (*p_above < *min ? p_above : min);
     min = (*p_left < *min ? p_left : min);
     return min;
