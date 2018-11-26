@@ -24,6 +24,12 @@ unsigned int simple_euclid_alg(int a, int b) {
     return q;
 }
 
+/**
+ * Calculates the equation of shape
+ * x * a + y * b = gcd(a,b)
+ * and returns the values in a struct.
+ * Returns a struct comtaining x,y and gcd(a,b)
+ */
 eea_result_t extended_euclid_alg(int a, int b) {
     int old_s, s;
     int old_t, t;
@@ -61,11 +67,32 @@ eea_result_t extended_euclid_alg(int a, int b) {
 
 }
 
+/**
+ * Uses the extended euclidean algoritmn to calculate the inverse of a
+ * remainder class.
+ * Also prints out the simple euclidean algorithm and the result of the eea.
+ * If the element on this remainder class is not invertible ( number and modulus not coprime)
+ * it returns 0.
+ */
+int calc_mutiplicative_inverse(int number, unsigned int modulus) {
+    eea_result_t res = extended_euclid_alg(number, modulus);
+
+    if (res.gcd > 1) {
+        return 0; // Not invertible.
+    } else if (res.x < 0) {
+        return res.x + modulus; // Get the representant.
+    }
+    return res.x;
+}
+
 unsigned int _abs(int z) {
     return (z < 0 ? -z : z);
 }
 
 int main(int argc, char** argv) {
-    simple_euclid_alg(atoi(argv[1]), atoi(argv[2]));
-    extended_euclid_alg(atoi(argv[1]), atoi(argv[2]));
+    int n = atoi(argv[1]);
+    int mod = atoi(argv[2]);
+    int inverse = calc_mutiplicative_inverse(n, mod);
+    simple_euclid_alg(n, mod);
+    printf("Inverse of [%d]_%d is [%d]_%d", n, mod, inverse, mod);
 }
